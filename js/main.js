@@ -99,12 +99,24 @@ const app = {
     
     // STUDIO
     switchStudioTab: (t) => Studio.switchTab(t),
+    
+    // Pool
+    studioTogglePoolMode: () => Studio.togglePoolMode(),
     studioParsePool: () => Studio.parsePool(),
+    studioAddCard: () => Studio.addCard(),
     studioLoadDemo: () => Studio.loadDemo(),
+    
+    // Stats
     studioAddStat: () => Studio.addStat(),
     studioRemStat: (k) => Studio.remStat(k),
+    
+    // Saga
+    studioToggleSagaMode: () => Studio.toggleSagaMode(),
+    studioAddNode: (type) => Studio.addNode(type),
     studioSaveSaga: () => Studio.saveSaga(),
     studioResetSaga: () => Studio.resetSagaDefault(),
+    
+    // Config
     studioExport: () => Studio.exportConfig(),
     studioImport: () => Studio.importConfig(),
     studioLock: () => Studio.lockStudio(),
