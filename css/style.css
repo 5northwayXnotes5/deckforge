@@ -314,3 +314,9 @@ select:focus, input:focus, textarea:focus { outline: none; }
 .toast i { color: var(--accent-gold); }
 
 .hidden { display: none !important; }
+
+/* --- GM MODE VISIBILITY --- */
+body.gm-mode #app-item-studio {
+    display: flex !important;
+    animation: slideUp 0.5s ease;
+}
