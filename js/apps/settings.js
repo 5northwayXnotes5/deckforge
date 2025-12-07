@@ -1,4 +1,4 @@
-import { state, $, save, notify, uid } from '../core.js';
+import { state, $, save, notify } from '../core.js';
 
 // --- INITIALIZATION ---
 export const init = () => {
@@ -6,15 +6,8 @@ export const init = () => {
     const wallIn = $('wall-in');
     if (wallIn) wallIn.value = state.wall;
 
-    // 2. Pre-fill Pool Editor
-    const poolIn = $('pool-in');
-    if (poolIn) {
-        // Convert object array back to string format: [Name]URL
-        poolIn.value = state.pool.map(p => `[${p.name}]${p.img}`).join('\n');
-    }
-
-    // 3. Render Stats List
-    renderStatList();
+    // Note: We no longer load the Pool Editor or Stat List here.
+    // Those have moved to the secure 'Studio' app.
 };
 
 // --- WALLPAPER ---
@@ -32,35 +25,7 @@ export const setWall = () => {
     notify("Wallpaper Updated");
 };
 
-// --- CUSTOM STATS ---
-const renderStatList = () => {
-    const list = $('stat-list');
-    if (!list) return;
 
-    list.innerHTML = state.stats.map(k => `
-        <div class="list-row">
-            <label>${k}</label>
-            <div class="btn danger sm" onclick="app.remStat('${k}')">X</div>
-        </div>
-    `).join('');
-};
-
-export const addStat = () => {
-    const input = $('stat-in');
-    const val = input.value.trim().toUpperCase(); // Force uppercase for consistency
-    
-    if (!val) return notify("Enter a Stat Name");
-    if (state.stats.includes(val)) return notify("Stat already exists");
-    if (val.length > 8) return notify("Name too long (Max 8)");
-
-    state.stats.push(val);
-    
-    // Clear input
-    input.value = '';
-    
-    save();
-    renderStatList();
-    notify(`Stat "${val}" Added`);
 };
 
 export const remStat = (key) => {
