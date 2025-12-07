@@ -1,15 +1,28 @@
-// --- DECKOS KERNEL ---
+// --- DECKOS KERNEL v5.1 (GM Edition) ---
 // This file manages the central state, persistence, and DOM helpers.
 
 // 1. SYSTEM DEFAULTS
 const DEF = {
-    ver: 4,
+    ver: 5,
     gold: 100,
-    pool: [],
+    
+    // User Progress
     col: [],
     decks: [],
-    // PRESERVING YOUR CUSTOM STATS FEATURE
+    bank: 0,
+    lastOracle: 0,
+    
+    // Game Rules (The "Cartridge")
+    pool: [],
     stats: ['ATK', 'DEF', 'SPD'], 
+    campaign: [], // Custom Saga Nodes
+    
+    // System Flags
+    wall: '',
+    gmMode: false, // Hidden Admin Mode
+    activeDeckId: null,
+    
+    // Rarity Config (Hardcoded for now, could be modularized later)
     rarity: [
         { id: 'c', n: 'Common', c: '#8e8e93', w: 500, lim: 99 },
         { id: 'u', n: 'Uncommon', c: '#30d158', w: 250, lim: 10 },
@@ -17,12 +30,10 @@ const DEF = {
         { id: 'e', n: 'Epic', c: '#bf5af2', w: 25, lim: 3 },
         { id: 'l', n: 'Legendary', c: '#ffd60a', w: 5, lim: 1 },
         { id: 'm', n: 'Mythic', c: '#ff453a', w: 1, lim: 1 }
-    ],
-    wall: ''
+    ]
 };
 
 // 2. STATE (Live Binding)
-// All apps will import this variable to read/write data.
 export let state = JSON.parse(JSON.stringify(DEF));
 
 // 3. DOM HELPERS
@@ -41,34 +52,31 @@ export const notify = (msg) => {
     }
 };
 
-// 5. UI UPDATER
-// Call this whenever gold or critical state changes
-export const updateUI = () => {
-    if ($('gold-display')) $('gold-display').innerText = state.gold.toLocaleString();
-    if ($('shop-gold')) $('shop-gold').innerText = state.gold.toLocaleString();
-    if ($('col-empty')) $('col-empty').style.display = state.col.length ? 'none' : 'block';
-};
-
-// 6. PERSISTENCE (Save/Load)
+// 5. PERSISTENCE (Save/Load)
 export const save = () => {
-    localStorage.setItem('dos_v4', JSON.stringify(state));
+    localStorage.setItem('dos_v5', JSON.stringify(state));
     updateUI();
 };
 
 export const load = () => {
-    const l = localStorage.getItem('dos_v4');
+    const l = localStorage.getItem('dos_v5');
+    // Migration Logic (Handle v4 data if present)
+    const old = localStorage.getItem('dos_v4');
+    
     if (l) {
         const p = JSON.parse(l);
-        if (p.ver === 4) {
-            // Full load
-            Object.assign(state, p);
-        } else {
-            // Migration logic (Legacy support)
-            state.pool = p.pool || [];
-            state.col = p.collection || p.col || [];
-            state.gold = 200; // Reset gold on version mismatch/upgrade
-            console.log("DeckOS: Migrated from older version.");
-        }
+        // Merge to ensure new fields (like gmMode) exist even in old saves
+        Object.assign(state, { ...DEF, ...p });
+    } else if (old) {
+        // Migrate v4 to v5
+        const p = JSON.parse(old);
+        state.pool = p.pool || [];
+        state.col = p.col || [];
+        state.stats = p.stats || ['ATK','DEF','SPD'];
+        state.wall = p.wall || '';
+        state.gold = p.gold || 100;
+        console.log("DeckOS: Migrated v4 to v5");
+        save();
     }
     
     // Apply Wallpaper
@@ -76,6 +84,11 @@ export const load = () => {
         $('wallpaper').style.backgroundImage = `url('${state.wall}')`;
     }
     
+    // Check GM Mode Visuals
+    if (state.gmMode) {
+        document.body.classList.add('gm-mode');
+    }
+
     // Start Clock
     setInterval(() => {
         const d = new Date();
@@ -86,9 +99,45 @@ export const load = () => {
     updateUI();
 };
 
+const updateUI = () => {
+    if ($('gold-display')) $('gold-display').innerText = Math.floor(state.gold).toLocaleString();
+    if ($('shop-gold')) $('shop-gold').innerText = Math.floor(state.gold).toLocaleString();
+    if ($('col-empty') && state.col) $('col-empty').style.display = state.col.length ? 'none' : 'block';
+};
+
+// 6. CARTRIDGE SYSTEM (Export/Import Game Rules)
+// This separates "My Save File" from "The Game Config"
+export const exportCartridge = () => {
+    const cartridge = {
+        name: "Custom DeckOS Config",
+        version: "1.0",
+        pool: state.pool,
+        stats: state.stats,
+        campaign: state.campaign
+    };
+    return JSON.stringify(cartridge, null, 2);
+};
+
+export const importCartridge = (jsonStr) => {
+    try {
+        const data = JSON.parse(jsonStr);
+        if (!Array.isArray(data.pool)) throw new Error("Invalid Pool");
+        
+        state.pool = data.pool;
+        state.stats = data.stats || ['ATK', 'DEF', 'SPD'];
+        state.campaign = data.campaign || [];
+        
+        save();
+        notify("Cartridge Loaded Successfully");
+        return true;
+    } catch (e) {
+        console.error(e);
+        notify("Invalid Cartridge Data");
+        return false;
+    }
+};
+
 // 7. NAVIGATION
-// This handles the visual switching. Specific app logic (like initializing the Duel board)
-// will be handled in main.js triggers.
 export const openAppWindow = (id) => {
     document.querySelectorAll('.app-window').forEach(e => e.classList.remove('active'));
     const win = $(`app-${id}`);
@@ -101,26 +150,9 @@ export const goHome = () => {
     document.body.classList.remove('app-open');
 };
 
-// 8. DATA MANAGEMENT (Settings/Demo)
-// Keeping this here so other apps can trigger a "Factory Reset" or "Demo Load"
 export const factoryReset = () => {
     localStorage.clear();
     location.reload();
 };
 
-export const loadDemoData = () => {
-    const demoPool = [
-        {id:uid(), name:'Pikachu', img:'https://img.icons8.com/color/96/pikachu-pokemon.png'},
-        {id:uid(), name:'Charmander', img:'https://img.icons8.com/color/96/charmander.png'},
-        {id:uid(), name:'Squirtle', img:'https://img.icons8.com/color/96/squirtle.png'},
-        {id:uid(), name:'Bulbasaur', img:'https://img.icons8.com/color/96/bulbasaur.png'},
-        {id:uid(), name:'Gengar', img:'https://img.icons8.com/color/96/gengar.png'},
-        {id:uid(), name:'Dragon', img:'https://img.icons8.com/color/96/dragon.png'},
-        {id:uid(), name:'Knight', img:'https://img.icons8.com/color/96/knight.png'},
-        {id:uid(), name:'Wizard', img:'https://img.icons8.com/color/96/wizard.png'}
-    ];
-    state.pool = demoPool;
-    save();
-    notify("Demo Data Loaded");
-};
 
