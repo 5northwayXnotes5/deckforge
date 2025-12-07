@@ -1,4 +1,4 @@
-import { state, $, save, notify, factoryReset } from '../core.js';
+import { state, $, save, notify, factoryReset, importCartridge } from '../core.js';
 
 // --- INITIALIZATION ---
 export const init = () => {
@@ -7,7 +7,7 @@ export const init = () => {
         input.value = '';
         input.focus();
     }
-    print("Welcome to DeckOS Terminal v5.0", "sys");
+    print("DeckOS Kernel v5.1", "sys");
     print("Type 'help' for command list.", "sys");
 };
 
@@ -48,6 +48,7 @@ const print = (text, type = "std") => {
 
 // --- COMMAND EXECUTION ---
 const execute = (rawCmd) => {
+    // Handle arguments with spaces
     const parts = rawCmd.split(' ');
     const cmd = parts[0].toLowerCase();
     const args = parts.slice(1);
@@ -59,8 +60,89 @@ const execute = (rawCmd) => {
             print("  whoami    - User identity");
             print("  clear     - Clear terminal");
             print("  reboot    - Reload OS");
-            print("  inject [n]- Add Gold (Cheat)");
             print("  wipe      - Factory Reset");
+            print("  sudo      - Admin commands");
+            break;
+
+        case 'clear':
+            $('term-out').innerHTML = '';
+            break;
+
+        case 'status':
+            print(`[SYSTEM STATUS]`);
+            print(`Gold: ${state.gold}`);
+            print(`Bank: ${state.bank || 0}`);
+            print(`Cards: ${state.col.length}`);
+            print(`Pool: ${state.pool.length} templates`);
+            print(`Version: ${state.ver}`);
+            print(`GM Mode: ${state.gmMode ? "ACTIVE" : "Disabled"}`);
+            break;
+
+        case 'whoami':
+            const id = state.identity || { name: 'Unknown', avatarSeed: '?' };
+            print(`User: ${id.name}`);
+            print(`UID: ${id.avatarSeed}`);
+            break;
+
+        case 'inject':
+            // Cheat code (Still here for quick testing)
+            const amt = parseInt(args[0]);
+            if (!isNaN(amt)) {
+                state.gold += amt;
+                save();
+                print(`[CHEAT] Injected ${amt}G.`, "sys");
+            } else {
+                print("Usage: inject <amount>", "err");
+            }
+            break;
+
+        case 'sudo':
+            if (args[0] === 'open_studio') {
+                state.gmMode = true;
+                save();
+                document.body.classList.add('gm-mode');
+                print("ACCESS GRANTED.", "sys");
+                print("Studio App unlocked on Grid.", "sys");
+                notify("GM Mode Active");
+            } else {
+                print("Access Denied.", "err");
+            }
+            break;
+
+        case 'load_config':
+            // Allow pasting raw JSON string here
+            const jsonStr = args.join(' ');
+            if (!jsonStr) {
+                print("Usage: load_config <json_string>", "err");
+                return;
+            }
+            if (importCartridge(jsonStr)) {
+                print("Cartridge Loaded.", "sys");
+            } else {
+                print("Import Failed. Check format.", "err");
+            }
+            break;
+
+        case 'reboot':
+            print("Rebooting...", "sys");
+            setTimeout(() => location.reload(), 1000);
+            break;
+
+        case 'wipe':
+            print("WARNING: This will delete all data.", "err");
+            print("Type 'confirm_wipe' to proceed.", "err");
+            break;
+
+        case 'confirm_wipe':
+            factoryReset();
+            break;
+
+        default:
+            print(`Command '${cmd}' not found.`, "err");
+    }
+};
+
+
             break;
 
         case 'clear':
