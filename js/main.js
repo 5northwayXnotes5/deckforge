@@ -11,7 +11,7 @@ import * as Pressure from './apps/pressure.js';
 import * as Collection from './apps/collection.js';
 import * as Settings from './apps/settings.js';
 
-// --- NEW APP MODULES ---
+// --- EXPANSION MODULES ---
 import * as Bank from './apps/bank.js';
 import * as Saga from './apps/saga.js';
 import * as Oracle from './apps/oracle.js';
@@ -19,6 +19,7 @@ import * as Market from './apps/market.js';
 import * as Museum from './apps/museum.js';
 import * as Terminal from './apps/terminal.js';
 import * as Identity from './apps/identity.js';
+import * as Studio from './apps/studio.js'; // The new GM Dashboard
 
 // --- GLOBAL CONTROLLER ---
 const app = {
@@ -26,8 +27,8 @@ const app = {
     open: (id) => {
         Core.openAppWindow(id);
         
-        // Init Logic per App
         switch(id) {
+            // Legacy
             case 'duel':       Duel.init(); break;
             case 'collection': Collection.render(); break;
             case 'lab':        Lab.init(); break;
@@ -35,10 +36,10 @@ const app = {
             case 'memory':     Memory.init(); break;
             case 'settings':   Settings.init(); break;
             case 'casino':     Casino.init(); break;
-            case 'shop':       /* Shop doesn't need init, it's static */ break;
+            case 'shop':       break; 
             case 'pressure':   Pressure.init(); break;
             
-            // New Apps
+            // Expansion
             case 'bank':       Bank.init(); break;
             case 'saga':       Saga.init(); break;
             case 'oracle':     Oracle.init(); break;
@@ -46,12 +47,15 @@ const app = {
             case 'museum':     Museum.init(); break;
             case 'terminal':   Terminal.init(); break;
             case 'identity':   Identity.init(); break;
+            
+            // GM Tools
+            case 'studio':     Studio.init(); break;
         }
     },
     
     home: Core.goHome,
     
-    // 2. Bridge Functions (HTML -> JS)
+    // 2. Bridge Functions
     
     // SHOP
     buyPack: (id) => Shop.buyPack(id),
@@ -90,21 +94,22 @@ const app = {
     // ROYALE
     runRoyale: () => Royale.run(),
     
-    // SETTINGS
+    // SETTINGS (Stripped down to just wallpaper)
     setWall: () => Settings.setWall(),
-    addStat: () => Settings.addStat(),
-    remStat: (k) => Settings.remStat(k),
-    parsePool: () => Settings.parsePool(),
-    loadDemo: () => Settings.loadDemo(), // Using Settings wrapper if present, else Core
-    askWipe: () => { Core.openAppWindow('confirm'); },
-    wipe: () => Core.factoryReset(),
-    closeConfirm: () => { document.getElementById('confirm-modal').classList.remove('active'); },
+    
+    // STUDIO (New GM Tools)
+    switchStudioTab: (t) => Studio.switchTab(t),
+    studioParsePool: () => Studio.parsePool(),
+    studioLoadDemo: () => Studio.loadDemo(),
+    studioAddStat: () => Studio.addStat(),
+    studioRemStat: (k) => Studio.remStat(k),
+    studioExport: () => Studio.exportConfig(),
+    studioImport: () => Studio.importConfig(),
+    studioLock: () => Studio.lockStudio(),
     
     // MEMORY
     initMem: () => Memory.init(),
 
-    // --- NEW APP BRIDGES ---
-    
     // BANK
     bankDeposit: () => Bank.deposit(),
     bankWithdraw: () => Bank.withdraw(),
