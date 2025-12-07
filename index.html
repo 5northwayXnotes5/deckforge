@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <title>DeckOS 5.0</title>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- BACKGROUND -->
+    <div id="wallpaper"></div>
+
+    <!-- STATUS BAR -->
+    <div id="status-bar">
+        <div id="clock">--:--</div>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <div class="currency-pill">
+                <i class="ph-fill ph-coins" style="color:var(--accent-gold)"></i>
+                <span id="gold-display">0</span>
+            </div>
+            <div>
+                <i class="ph-bold ph-wifi-high"></i>
+                <i class="ph-bold ph-battery-full" style="margin-left:6px;"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOME SCREEN (12 Apps -> 4x3 Grid) -->
+    <div class="app-grid">
+        <!-- Row 1: The Essentials -->
+        <div class="app-item" onclick="app.open('duel')">
+            <div class="icon-box grad-duel"><i class="ph-fill ph-sword"></i></div>
+            <div class="app-name">Duel</div>
+        </div>
+        <div class="app-item" onclick="app.open('bank')">
+            <div class="icon-box grad-bank"><i class="ph-fill ph-bank"></i></div>
+            <div class="app-name">Bank</div>
+        </div>
+        <div class="app-item" onclick="app.open('saga')">
+            <div class="icon-box grad-saga"><i class="ph-fill ph-scroll"></i></div>
+            <div class="app-name">Saga</div>
+        </div>
+        <div class="app-item" onclick="app.open('royale')">
+            <div class="icon-box grad-royale"><i class="ph-fill ph-crown"></i></div>
+            <div class="app-name">Royale</div>
+        </div>
+
+        <!-- Row 2: Economy & Luck -->
+        <div class="app-item" onclick="app.open('market')">
+            <div class="icon-box grad-market"><i class="ph-fill ph-chart-line-up"></i></div>
+            <div class="app-name">Market</div>
+        </div>
+        <div class="app-item" onclick="app.open('casino')">
+            <div class="icon-box grad-casino"><i class="ph-fill ph-club"></i></div>
+            <div class="app-name">Casino</div>
+        </div>
+        <div class="app-item" onclick="app.open('oracle')">
+            <div class="icon-box grad-oracle"><i class="ph-fill ph-eye"></i></div>
+            <div class="app-name">Oracle</div>
+        </div>
+        <div class="app-item" onclick="app.open('pressure')">
+            <div class="icon-box grad-press"><i class="ph-fill ph-gauge"></i></div>
+            <div class="app-name">Pressure</div>
+        </div>
+
+        <!-- Row 3: Utilities & Extras -->
+        <div class="app-item" onclick="app.open('memory')">
+            <div class="icon-box grad-mem"><i class="ph-fill ph-brain"></i></div>
+            <div class="app-name">Memory</div>
+        </div>
+        <div class="app-item" onclick="app.open('museum')">
+            <div class="icon-box grad-museum"><i class="ph-fill ph-trophy"></i></div>
+            <div class="app-name">Museum</div>
+        </div>
+        <div class="app-item" onclick="app.open('identity')">
+            <div class="icon-box grad-id"><i class="ph-fill ph-user-circle"></i></div>
+            <div class="app-name">ID</div>
+        </div>
+        <div class="app-item" onclick="app.open('terminal')">
+            <div class="icon-box grad-term"><i class="ph-bold ph-terminal-window"></i></div>
+            <div class="app-name">Term</div>
+        </div>
+    </div>
+
+    <!-- DOCK (Persistent Apps) -->
+    <div class="dock-container">
+        <div class="app-item" onclick="app.open('collection')">
+            <div class="icon-box grad-cards"><i class="ph-fill ph-cards"></i></div>
+        </div>
+        <div class="app-item" onclick="app.open('lab')">
+            <div class="icon-box grad-lab"><i class="ph-fill ph-flask"></i></div>
+        </div>
+        <div class="app-item" onclick="app.open('shop')">
+            <div class="icon-box grad-store"><i class="ph-fill ph-shopping-bag"></i></div>
+        </div>
+        <div class="app-item" onclick="app.open('settings')">
+            <div class="icon-box grad-set"><i class="ph-fill ph-gear"></i></div>
+        </div>
+    </div>
+
+    <!-- APP WINDOW LAYER -->
+    <div id="app-layer">
+
+        <!-- ================= EXISTING APPS ================= -->
+
+        <!-- DUEL -->
+        <div id="app-duel" class="app-window">
+            <div class="nav-bar">
+                <div class="nav-title">Duel</div>
+                <div class="nav-gold"><i class="ph-fill ph-coins"></i> +10</div>
+            </div>
+            <div class="content">
+                <div class="game-stage">
+                    <div style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;" id="duel-round">Round 1</div>
+                    <div style="display:flex; justify-content:space-between; width:100%; padding:0 30px; font-size:32px; font-weight:800;">
+                        <span style="color:var(--accent-green)" id="score-you">0</span>
+                        <span style="color:var(--accent-red)" id="score-ai">0</span>
+                    </div>
+                    <div class="duel-slots">
+                        <div class="card-slot" id="slot-you"></div>
+                        <div style="display:flex; align-items:center; opacity:0.3; font-weight:900;">VS</div>
+                        <div class="card-slot" id="slot-ai"></div>
+                    </div>
+                    <div id="duel-msg" style="height:20px; color:var(--accent-orange); font-weight:600;"></div>
+                </div>
+                <div class="list-group">
+                    <div class="list-row">
+                        <label>Deck</label>
+                        <select id="duel-deck-filter" onchange="app.filterDuel()"></select>
+                    </div>
+                </div>
+                <div class="card-strip" id="duel-strip"></div>
+                <div class="btn filled" onclick="app.resolveDuel()">FIGHT</div>
+            </div>
+        </div>
+
+        <!-- SHOP -->
+        <div id="app-shop" class="app-window">
+            <div class="nav-bar"><div class="nav-title">Store</div><div class="nav-gold" id="shop-gold">0</div></div>
+            <div class="content">
+                <div class="shop-grid">
+                    <div class="shop-item" onclick="app.buyPack(0)">
+                        <div class="pack-icon p-basic"><i class="ph-fill ph-package"></i></div>
+                        <div style="flex:1"><div>Basic Pack</div><div class="list-sub">Starter cards.</div></div>
+                        <div class="btn gold sm">100 G</div>
+                    </div>
+                    <div class="shop-item" onclick="app.buyPack(1)">
+                        <div class="pack-icon p-adv"><i class="ph-fill ph-check-circle"></i></div>
+                        <div style="flex:1"><div>Advanced</div><div class="list-sub">Better odds.</div></div>
+                        <div class="btn gold sm">200 G</div>
+                    </div>
+                    <div class="shop-item" onclick="app.buyPack(2)">
+                        <div class="pack-icon p-elite"><i class="ph-fill ph-star"></i></div>
+                        <div style="flex:1"><div>Elite</div><div class="list-sub">Rare potential.</div></div>
+                        <div class="btn gold sm">500 G</div>
+                    </div>
+                    <div class="shop-item" onclick="app.buyPack(3)">
+                        <div class="pack-icon p-comm"><i class="ph-fill ph-medal"></i></div>
+                        <div style="flex:1"><div>Commander</div><div class="list-sub">Epic potential.</div></div>
+                        <div class="btn gold sm">1K G</div>
+                    </div>
+                    <div class="shop-item" onclick="app.buyPack(4)">
+                        <div class="pack-icon p-supr"><i class="ph-fill ph-crown"></i></div>
+                        <div style="flex:1"><div>Supreme</div><div class="list-sub">High value.</div></div>
+                        <div class="btn gold sm">2K G</div>
+                    </div>
+                    <div class="shop-item" onclick="app.buyPack(5)">
+                        <div class="pack-icon p-myth"><i class="ph-fill ph-lightning"></i></div>
+                        <div style="flex:1"><div>Mythic</div><div class="list-sub">Legendary chance.</div></div>
+                        <div class="btn gold sm">5K G</div>
+                    </div>
+                    <div class="shop-item" onclick="app.buyPack(6)">
+                        <div class="pack-icon p-god"><i class="ph-fill ph-infinity"></i></div>
+                        <div style="flex:1"><div>God Tier</div><div class="list-sub">The ultimate.</div></div>
+                        <div class="btn gold sm">20K G</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLLECTION -->
+        <div id="app-collection" class="app-window">
+            <div class="nav-bar"><div class="nav-title">Collection</div></div>
+            <div class="content">
+                <div class="card-grid" id="col-grid"></div>
+                <div id="col-empty" style="text-align:center; margin-top:50px; color:#666;">No cards found.</div>
+            </div>
+        </div>
+
+        <!-- LAB -->
+        <div id="app-lab" class="app-window">
+            <div class="nav-bar"><div class="nav-title">Lab</div></div>
+            <div class="content">
+                <!-- Deck Builder -->
+                <div class="list-group">
+                    <div class="list-row"><input id="deck-name" placeholder="New Deck Name" style="width:100%; text-align:left;"><div class="btn sm" onclick="app.saveDeck()">Save</div></div>
+                    <div class="list-row"><label>Active</label><select id="deck-sel" onchange="app.selDeck(this.value)"></select></div>
+                </div>
+                
+                <!-- Fusion Reactor -->
+                <div class="reactor-stage">
+                    <div class="reactor-slot" id="rx-slot-a"></div>
+                    <div class="reactor-info">
+                        <div style="font-size:10px; color:#888; margin-bottom:4px;">STABILITY</div>
+                        <div class="fuse-rate" id="rx-rate">--%</div>
+                        <div class="fuse-cost">Cost: 50G</div>
+                    </div>
+                    <div class="reactor-slot" id="rx-slot-b"></div>
+                </div>
+
+                <div class="list-group">
+                    <div class="list-row"><select id="fuse-a" style="width:100%; text-align:left;" onchange="app.updateReactor()"><option value="">Select Card A</option></select></div>
+                    <div class="list-row"><select id="fuse-b" style="width:100%; text-align:left;" onchange="app.updateReactor()"><option value="">Select Card B</option></select></div>
+                </div>
+                <div class="btn filled" onclick="app.fuse()">INITIATE FUSION</div>
+            </div>
+        </div>
+
+        <!-- CASINO -->
+        <div id="app-casino" class="app-window">
+            <div class="nav-bar"><div class="nav-title">Casino</div></div>
+            <div class="content">
+                <div id="casino-home" class="casino-menu">
+                    <div class="casino-game" onclick="app.openCasinoGame('bj')"><i class="ph-fill ph-cards"></i><span>Blackjack</span></div>
+                    <div class="casino-game" onclick="app.openCasinoGame('roulette')"><i class="ph-fill ph-spinner"></i><span>Roulette</span></div>
+                    <div class="casino-game" onclick="app.openCasinoGame('slots')"><i class="ph-fill ph-rows"></i><span>Slots</span></div>
+                    <div class="casino-game" onclick="app.openCasinoGame('dice')"><i class="ph-fill ph-dice-two"></i><span>Dice</span></div>
+                </div>
+
+                <!-- BJ -->
+                <div id="cg-bj" class="hidden casino-stage">
+                    <h3>Blackjack (2:1)</h3>
+                    <div id="bj-table" style="min-height:100px; margin:20px 0;"></div>
+                    <div id="bj-controls">
+                        <div class="list-group"><div class="list-row"><label>Bet</label><input type="number" id="bj-bet" value="50"></div></div>
+                        <div class="btn filled" onclick="app.playBJ()">DEAL</div>
+                    </div>
+                    <div id="bj-actions" class="hidden" style="display:flex; gap:10px;">
+                        <div class="btn filled" style="flex:1" onclick="app.hitBJ()">HIT</div>
+                        <div class="btn danger" style="flex:1" onclick="app.standBJ()">STAND</div>
+                    </div>
+                    <div class="btn" onclick="app.backCasino()">Back</div>
+                </div>
+
+                <!-- SLOTS -->
+                <div id="cg-slots" class="hidden casino-stage">
+                    <h3>Slots</h3>
+                    <div class="slot-machine">
+                        <div class="reel" id="reel-1"></div>
+                        <div class="reel" id="reel-2"></div>
+                        <div class="reel" id="reel-3"></div>
+                    </div>
+                    <div class="list-group"><div class="list-row"><label>Bet</label><input type="number" id="slot-bet" value="50"></div></div>
+                    <div class="btn filled" onclick="app.spinSlots()">SPIN</div>
+                    <div class="btn" onclick="app.backCasino()">Back</div>
+                </div>
+
+                <!-- ROULETTE -->
+                <div id="cg-roulette" class="hidden casino-stage">
+                    <h3>Roulette</h3>
+                    <div style="font-size:60px; font-weight:800; margin:30px 0; min-height:80px;" id="roul-res">?</div>
+                    <div style="display:flex; gap:10px; margin-bottom:20px;">
+                        <div class="btn danger" style="flex:1; margin:0;" onclick="app.spinRoulette('red')">RED (2x)</div>
+                        <div class="btn" style="flex:1; margin:0; background:#333; color:white;" onclick="app.spinRoulette('black')">BLACK (2x)</div>
+                    </div>
+                    <div class="list-group"><div class="list-row"><label>Bet</label><input type="number" id="roul-bet" value="50"></div></div>
+                    <div class="btn" onclick="app.backCasino()">Back</div>
+                </div>
+
+                <!-- DICE -->
+                <div id="cg-dice" class="hidden casino-stage">
+                    <h3>Lucky 7</h3>
+                    <div style="font-size:50px; margin:20px;" id="dice-disp">🎲 🎲</div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="btn" style="flex:1; margin:0;" onclick="app.rollDice('lo')">Low (&lt;7)</div>
+                        <div class="btn gold" style="flex:1; margin:0;" onclick="app.rollDice('7')">7 (4x)</div>
+                        <div class="btn" style="flex:1; margin:0;" onclick="app.rollDice('hi')">High (&gt;7)</div>
+                    </div>
+                    <div class="list-group"><div class="list-row"><label>Bet</label><input type="number" id="dice-bet" value="50"></div></div>
+                    <div class="btn" onclick="app.backCasino()">Back</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROYALE -->
+        <div id="app-royale" class="app-window">
+            <div class="nav-bar"><div class="nav-title">Royale</div></div>
+            <div class="content">
+                <div class="royale-bet-ui">
+                    <div style="margin-bottom:20px; color:#aaa;">Bet on your champion.</div>
+                    <div class="list-group" style="margin:0 0 20px;">
+                        <div class="list-row"><label>Bet</label><input type="number" id="roy-bet" value="50"></div>
+                        <div class="list-row"><label>Champion</label><select id="roy-champ"></select></div>
+                    </div>
+                    <div class="btn filled" onclick="app.runRoyale()">START RACE</div>
+                    <div class="royale-winner" id="roy-win-box">
+                        <div style="font-weight:700; color:var(--accent-green);">WINNER</div>
+                        <div id="roy-win-name" style="font-size:20px; margin:10px 0;"></div>
+                        <div id="roy-win-img" style="width:80px; height:110px; background:#333; margin:0 auto; border-radius:8px; overflow:hidden;"></div>
+                        <div id="roy-payout" style="margin-top:10px; color:var(--accent-gold);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MEMORY -->
+        <div id="app-memory" class="app-window">
+            <div class="nav-bar">
+                <div class="nav-title">Memory</div>
+                <div class="btn sm" onclick="app.initMem()" style="margin:0;"><i class="ph-bold ph-arrow-counter-clockwise"></i></div>
+            </div>
+            <div class="content">
+                <div id="mem-status" style="padding:10px 20px; text-align:center; font-size:13px; color:#888;">Entry: 20G</div>
+                <div class="card-grid" style="grid-template-columns:repeat(4,1fr); gap:8px;" id="mem-grid"></div>
+            </div>
+        </div>
+
+        <!-- PRESSURE -->
+        <div id="app-pressure" class="app-window">
+            <div class="nav-bar"><div class="nav-title">Pressure</div></div>
+            <div class="content" style="display:flex; flex-direction:column;">
+                <div class="game-stage" style="flex:1; justify-content:center;">
+                    <div id="pressure-lobby">
+                        <div style="color:#888; margin-bottom:20px; text-align:center;">Survival Mode<br>Fail = <b>Card Deleted</b></div>
+                        <div class="list-group"><div class="list-row"><label>Bet</label><input type="number" id="pressure-bet" value="50"></div></div>
+                        <div class="btn gold" onclick="app.startPressure()">START RUN</div>
+                    </div>
+                    <div id="pressure-game" class="hidden" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center;">
+                        <div style="font-size:16px; font-weight:700; color:var(--accent-blue); margin-bottom:10px;">LEVEL <span id="p-lvl">1</span></div>
+                        <div style="flex:1; width:90%; background:#222; border-radius:12px; overflow:hidden; border:2px solid #444; margin-bottom:16px; position:relative; min-height:200px;">
+                            <div id="p-card-img" style="width:100%; height:100%;"></div>
+                            <div style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.6); padding:4px 8px; border-radius:4px; font-weight:700;" id="p-time">15.0s</div>
+                        </div>
+                        <div style="width:100%; padding:0 10px; margin-bottom:16px;">
+                            <div style="height:14px; background:#333; border-radius:7px; overflow:hidden; position:relative;">
+                                <div id="p-bar" style="position:absolute; top:0; bottom:0; left:50%; width:10%; transform:translateX(-50%); background:var(--accent-gold); border-radius:2px;"></div>
+                                <div style="position:absolute; left:0; width:3px; height:100%; background:red;"></div>
+                                <div style="position:absolute; right:0; width:3px; height:100%; background:red;"></div>
+                            </div>
+                        </div>
+                        <button class="btn filled" onmousedown="app.pressureTap()" ontouchstart="app.pressureTap()" style="width:100%; height:60px; font-size:20px;">PUSH</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div id="app-settings" class="app-window">
+            <div class="nav-bar"><div class="nav-title">Settings</div></div>
+            <div class="content">
+                <div class="list-group">
+                    <div class="list-row"><label>Wallpaper</label><input id="wall-in" placeholder="URL"></div>
+                    <div class="btn" onclick="app.setWall()">Update</div>
+                </div>
+                <div class="list-group">
+                    <div class="list-row"><label>Custom Stat</label><input id="stat-in"></div>
+                    <div class="btn" onclick="app.addStat()">Add</div>
+                    <div id="stat-list"></div>
+                </div>
+                <div class="list-group">
+                    <div class="list-row"><textarea id="pool-in" style="width:100%; height:80px; background:transparent; border:none; color:white; font-size:12px; font-family:monospace;" placeholder="[Name]URL"></textarea></div>
+                    <div class="btn" onclick="app.parsePool()">Update Pool</div>
+                    <div class="btn" onclick="app.loadDemo()">Load Default Data</div>
+                </div>
+                <div class="btn danger" onclick="app.askWipe()">Factory Reset</div>
+            </div>
+        </div>
+
+        <!-- ================= NEW APPS (SKELETONS) ================= -->
+
+        <!-- BANK -->
+        <div id="app-bank" class="app-window">
+            <div class="nav-bar"><div class="nav-title">Bank</div></div>
+            <div class="content">
+                <div class="bank-vault">
+                    <div class="list-sub">SAVINGS BALANCE</div>
+                    <div class="bank-display" id="bank-bal">0</div>
+                    <div class="rate-pill">APY: 5% (1 min)</div>
+                </div>
+                <div class="list-group">
+                    <div class="list-row"><label>Amount</label><input type="number" id="bank-in" placeholder="0"></div>
+                    <div class="btn-row" style="margin:0; padding:10px;">
+                        <div class="btn filled" onclick="app.bankDeposit()">Deposit</div>
+                        <div class="btn" onclick="app.bankWithdraw()">Withdraw</div>
+                    </div>
+                </div>
+                <div style="padding:20px; text-align:center; color:#666; font-size:13px;">
+                    Interest is paid every minute while app is open.
+                </div>
+            </div>
+        </div>
+
+        <!-- SAGA (Story Mode) -->
+        <div id="app-saga" class="app-window">
+            <div class="nav-bar"><div class="nav-title">Saga</div></div>
+            <div class="content">
+                <div class="saga-map" id="saga-map">
+                    <!-- Nodes will be injected here via JS -->
+                    <div style="text-align:center; margin-top:50px;">Loading Map...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MARKET (Stocks) -->
+        <div id="app-market" class="app-window">
+            <div class="nav-bar"><div class="nav-title">Market</div></div>
+            <div class="content">
+                <div style="padding:16px; font-size:13px; color:#888;">
+                    Invest in Rarity Indexes. Prices fluctuate every 30s.
+                </div>
+                <div id="market-list" class="list-group" style="margin-top:0;"></div>
+            </div>
+        </div>
+
+        <!-- MUSEUM (Achievements) -->
+        <div id="app-museum" class="app-window">
+            <div class="nav-bar"><div class="nav-title">Museum</div></div>
+            <div class="content">
+                <div class="list-group">
+                    <div class="list-row"><label>Title</label><span id="mus-title" style="color:var(--accent-gold)">Novice</span></div>
+                </div>
+                <div style="padding:16px; font-weight:700;">Achievements</div>
+                <div id="mus-grid" class="shop-grid"></div>
+            </div>
+        </div>
+
+        <!-- ORACLE (Daily) -->
+        <div id="app-oracle" class="app-window">
+            <div class="nav-bar"><div class="nav-title">Oracle</div></div>
+            <div class="content">
+                <div class="tarot-table">
+                    <div class="tarot-card" id="oracle-card" onclick="app.oracleConsult()">
+                        <div class="tarot-back"><i class="ph-fill ph-eye"></i></div>
+                        <div class="tarot-face">
+                            <i class="ph-duotone ph-star" style="font-size:40px; color:var(--accent-purple); margin-bottom:10px;"></i>
+                            <div style="font-weight:700; margin-bottom:4px;" id="oracle-title">Fate</div>
+                            <div style="font-size:11px; text-align:center; padding:0 10px; color:#aaa;" id="oracle-desc">Tap to reveal</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align:center; color:#666; font-size:12px;">Consult once per day.</div>
+            </div>
+        </div>
+
+        <!-- TERMINAL (Cheat Codes) -->
+        <div id="app-terminal" class="app-window">
+            <div class="nav-bar"><div class="nav-title">Terminal</div></div>
+            <div class="content">
+                <div class="term-window">
+                    <div class="term-out" id="term-out">DeckOS Kernel v5.0 Loaded...</div>
+                    <input type="text" class="term-in" id="term-in" placeholder="Enter command..." onkeydown="app.termInput(event)">
+                </div>
+            </div>
+        </div>
+
+        <!-- IDENTITY (Profile) -->
+        <div id="app-identity" class="app-window">
+            <div class="nav-bar"><div class="nav-title">ID Card</div></div>
+            <div class="content">
+                <div style="margin:20px; display:flex; flex-direction:column; align-items:center;">
+                    <div style="width:100px; height:100px; background:#333; border-radius:50px; overflow:hidden; border:3px solid var(--accent-blue);">
+                        <img id="id-avatar" src="" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <div class="btn sm" style="margin-top:10px;" onclick="app.idChangeAvatar()">Randomize Avatar</div>
+                </div>
+                <div class="list-group">
+                    <div class="list-row"><label>Username</label><input id="id-name" placeholder="Guest"></div>
+                    <div class="list-row"><label>Title</label><span id="id-title" style="color:#888;">Novice</span></div>
+                    <div class="list-row"><label>ID</label><span id="id-uid" style="font-family:monospace; font-size:12px;">...</span></div>
+                </div>
+                <div class="btn filled" onclick="app.idSave()">Save ID</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- OVERLAYS -->
+    <div id="home-bar" onclick="app.home()"><div class="bar-pill"></div></div>
+
+    <!-- PACK MODAL -->
+    <div class="modal" id="pack-modal">
+        <div class="pack-open-anim" id="pack-opener">TAP</div>
+        <div class="pack-grid" id="pack-reveal"></div>
+        <div class="btn" id="pack-done" onclick="app.closePack()" style="display:none; margin-top:20px; width:200px; z-index:202;">Done</div>
+    </div>
+
+    <!-- CONFIRM MODAL -->
+    <div class="modal" id="confirm-modal">
+        <div class="ios-confirm">
+            <h3>Factory Reset</h3>
+            <p>Are you sure you want to wipe all data? This cannot be undone.</p>
+            <div class="ios-btns">
+                <div class="ios-btn" onclick="app.closeConfirm()">Cancel</div>
+                <div class="ios-btn destruct" onclick="app.wipe()">Reset</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHEET MODAL (Card View) -->
+    <div class="modal" id="sheet-modal">
+        <div class="sheet-content">
+            <div style="display:flex; gap:16px;">
+                <div id="sheet-img" style="width:110px; height:160px; background:#333; border-radius:10px; overflow:hidden; border:2px solid transparent;"></div>
+                <div style="flex:1">
+                    <h2 id="sheet-name" style="margin:0 0 4px 0;">Name</h2>
+                    <div id="sheet-rarity" style="font-size:13px; font-weight:700; text-transform:uppercase; margin-bottom:12px;">Rarity</div>
+                    <div id="sheet-stats" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+                </div>
+            </div>
+            <div class="btn-row" style="margin:16px 0 0;">
+                <div class="btn filled" id="btn-deck-tog" onclick="app.togDeck()">+ Deck</div>
+                <div class="btn danger" onclick="app.delCard()">Burn</div>
+                <div class="btn" onclick="app.closeSheet()">Close</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast">
+        <i class="ph-fill ph-bell"></i>
+        <span id="toast-msg">Notification</span>
+    </div>
+
+    <!-- APP GLUE -->
+    <script type="module" src="js/main.js"></script>
+
+</body>
+</html>
+
