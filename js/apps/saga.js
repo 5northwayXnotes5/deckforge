@@ -3,31 +3,36 @@ import { createCard } from './shop.js';
 
 // --- INTERNAL STATE ---
 let saga = {
-    activeNode: null,
-    currentNodeIndex: 0
+    // No specific internal state needed for now, handled by state.saga
 };
 
-// --- DEFAULT CAMPAIGN ---
-// This is the skeleton. The specific enemies are filled in dynamically
-// based on the user's Card Pool in Settings.
-const CAMPAIGN = [
+// --- DEFAULT CAMPAIGN (Fallback) ---
+const DEFAULT_CAMPAIGN = [
     { type: 'story', title: 'The Beginning', text: 'You boot up the system. The path ahead is fragmented. Digital entities block your root access.' },
-    { type: 'battle', title: 'Firewall Sentry', difficulty: 1 }, // Easy Battle
+    { type: 'battle', title: 'Firewall Sentry', difficulty: 1 }, 
     { type: 'loot',   title: 'Cache Dump', reward: 50 },
     { type: 'story', title: 'Deep Sector', text: 'You have breached the outer layer. The encryption here is denser.' },
-    { type: 'battle', title: 'Logic Gate Keeper', difficulty: 2 }, // Medium Battle
+    { type: 'battle', title: 'Logic Gate Keeper', difficulty: 2 },
     { type: 'loot',   title: 'Encrypted Drop', reward: 100 },
-    { type: 'boss',   title: 'Root Admin', difficulty: 3 } // Boss Battle
+    { type: 'boss',   title: 'Root Admin', difficulty: 3 }
 ];
 
 // --- INITIALIZATION ---
 export const init = () => {
-    // 1. Lazy Load State
+    // 1. Lazy Load Player Progress
     if (typeof state.saga === 'undefined') {
         state.saga = {
-            currentStep: 0,
-            completed: false
+            currentStep: 0
         };
+    }
+
+    // 2. Lazy Load Campaign Data (The Cartridge)
+    // If no campaign exists, load the default one so the player has something to play.
+    if (!state.campaign || state.campaign.length === 0) {
+        state.campaign = JSON.parse(JSON.stringify(DEFAULT_CAMPAIGN));
+        // We don't necessarily save() here to avoid writing defaults to localstorage unnecessarily, 
+        // but for a robust app, it's safer to ensure state matches memory.
+        save();
     }
 
     renderMap();
@@ -40,14 +45,10 @@ const renderMap = () => {
 
     mapEl.innerHTML = '';
 
-    CAMPAIGN.forEach((node, index) => {
+    // Use state.campaign instead of hardcoded constant
+    state.campaign.forEach((node, index) => {
         const el = document.createElement('div');
         el.className = 'saga-node';
-        
-        // STATUS LOGIC
-        // Past nodes are "completed"
-        // Current node is "active"
-        // Future nodes are "locked"
         
         let statusClass = '';
         let icon = '';
@@ -65,7 +66,6 @@ const renderMap = () => {
 
         el.classList.add(statusClass);
 
-        // Content
         el.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="font-weight:bold;">${index + 1}. ${node.title}</div>
@@ -74,21 +74,20 @@ const renderMap = () => {
             <div style="font-size:12px; color:#888; margin-top:4px;">${node.type.toUpperCase()}</div>
         `;
 
-        // Click Handler (Only for active node)
         if (statusClass === 'active') {
-            el.onclick = () => playNode(node, index);
+            el.onclick = () => playNode(node);
         }
 
         mapEl.appendChild(el);
     });
     
-    // Completion Message
-    if (state.saga.currentStep >= CAMPAIGN.length) {
+    // Victory Screen
+    if (state.saga.currentStep >= state.campaign.length) {
         mapEl.innerHTML = `
             <div style="text-align:center; padding:40px;">
                 <i class="ph-fill ph-trophy" style="font-size:50px; color:var(--accent-gold); margin-bottom:20px;"></i>
-                <h2>System Rooted</h2>
-                <p>You have conquered the default campaign.</p>
+                <h2>Campaign Complete</h2>
+                <p>System Rooted.</p>
                 <div class="btn filled" onclick="app.resetSaga()">Reboot (Reset Story)</div>
             </div>
         `;
@@ -96,12 +95,8 @@ const renderMap = () => {
 };
 
 // --- GAMEPLAY ---
-const playNode = (node, index) => {
+const playNode = (node) => {
     if (node.type === 'story') {
-        // Simple Alert for Story (Could be a modal, but alert is cleaner for text)
-        // Using a custom "notify" style would be better, but we lack a text modal.
-        // We'll use the Term output or just a confirm for now.
-        // Actually, let's inject a temporary view into the Saga window.
         showEventView(node.title, node.text, "Proceed", () => completeNode());
     } 
     else if (node.type === 'loot') {
@@ -118,8 +113,7 @@ const playNode = (node, index) => {
 
 const showEventView = (title, text, btnText, callback) => {
     const mapEl = $('saga-map');
-    const originalContent = mapEl.innerHTML;
-
+    
     mapEl.innerHTML = `
         <div style="padding:20px; text-align:center; animation: fadeIn 0.3s;">
             <h2>${title}</h2>
@@ -128,10 +122,7 @@ const showEventView = (title, text, btnText, callback) => {
         </div>
     `;
     
-    $('saga-action-btn').onclick = () => {
-        // callback(); // We don't restore view, we re-render map which happens in init/complete
-        callback();
-    };
+    $('saga-action-btn').onclick = callback;
 };
 
 const completeNode = () => {
@@ -146,28 +137,20 @@ export const resetSaga = () => {
     renderMap();
 };
 
-// --- BATTLE LOGIC (Simplified Duel) ---
+// --- BATTLE LOGIC ---
 const startBattle = (node) => {
-    // 1. Generate Enemy based on User Pool
-    // If Pool is empty, fallback
     if (state.pool.length === 0) return notify("Pool Empty! Cannot generate enemy.");
 
-    // Difficulty determines Rarity of enemy
-    // 1 = Common/Uncommon, 2 = Rare/Epic, 3 = Legend/Mythic
+    // Difficulty Mapping
     let targetRarity = 'c';
     if (node.difficulty === 2) targetRarity = 'r';
     if (node.difficulty === 3) targetRarity = 'l';
 
-    // Find a card template suitable for this boss
-    // (e.g. For boss, try to find a cool looking card)
     const enemyTemplate = rand(state.pool);
     
-    // User needs to select a card to fight with
-    // For simplicity in this v1 Saga, we auto-select their strongest card
-    // or we prompt them. To keep flow fast, let's Auto-Select Best Card.
     if (state.col.length === 0) return notify("You need cards to fight!");
     
-    // Find player's best card (highest total stats)
+    // Auto-Select Player's Best Card
     const playerCard = state.col.reduce((prev, current) => {
         const prevTotal = Object.values(prev.stat).reduce((a,b)=>a+b,0);
         const currTotal = Object.values(current.stat).reduce((a,b)=>a+b,0);
@@ -176,7 +159,6 @@ const startBattle = (node) => {
 
     const playerTemplate = state.pool.find(x => x.id === playerCard.tid);
 
-    // Show Battle View
     const mapEl = $('saga-map');
     mapEl.innerHTML = `
         <div style="text-align:center; padding:20px;">
@@ -203,48 +185,47 @@ const startBattle = (node) => {
 const resolveBattle = (pCard, eTemplate, eRarityId, node) => {
     const log = $('saga-battle-log');
     
-    // Create actual enemy stats
-    // Note: We don't add this card to DB, just generate object
-    // We use the shop generator but don't save it
-    // We manually gen stats to avoid imports if circular (but we imported createCard so we good, but wait createCard checks limits!)
-    // Let's just manually gen stats to be safe and unbound.
-    
+    // Generate Enemy Stats on the fly
     const eStat = {};
-    const rObj = state.rarity.find(x => x.id === eRarityId);
+    const rObj = state.rarity.find(x => x.id === eRarityId) || state.rarity[0];
     const mult = state.rarity.indexOf(rObj) + 1;
     state.stats.forEach(k => eStat[k] = Math.floor(Math.random() * 20 * mult) + (10 * mult));
 
-    // BATTLE!
-    // Compare average stat
+    // Calc Averages
     const pAvg = Object.values(pCard.stat).reduce((a,b)=>a+b,0) / Object.keys(pCard.stat).length;
     const eAvg = Object.values(eStat).reduce((a,b)=>a+b,0) / Object.keys(eStat).length;
 
-    // RNG Factor (+/- 10%)
+    // RNG Roll
     const pRoll = pAvg * (0.9 + Math.random() * 0.2);
     const eRoll = eAvg * (0.9 + Math.random() * 0.2);
 
     if (pRoll >= eRoll) {
-        log.innerText = "VICTORY! Enemy Firewall Breached.";
+        log.innerText = "VICTORY! Enemy Defeated.";
         log.style.color = "#30D158";
         $('saga-fight-btn').style.display = 'none';
         
         setTimeout(() => {
             if (node.type === 'boss') {
-                // Boss Drop!
+                // Reward logic using shared Shop function would be ideal, 
+                // but direct creation is safer here to avoid circular imports if Shop imports Saga later.
+                // We'll trust the shop import at the top.
                 const reward = createCard(eTemplate.id, eRarityId);
                 if (reward && reward !== 'CAP') {
                     state.col.push(reward);
-                    notify("Boss Captured!");
+                    notify(`Boss Captured: ${eTemplate.name}`);
+                } else {
+                    notify("Boss Defeated (Capacity Full)");
                 }
             }
             completeNode();
         }, 1500);
     } else {
-        log.innerText = "DEFEAT! System Integrity Critical.";
+        log.innerText = "DEFEAT! Critical Failure.";
         log.style.color = "#FF453A";
         $('saga-fight-btn').innerText = "Retreat";
         $('saga-fight-btn').className = "btn";
-        $('saga-fight-btn').onclick = () => renderMap(); // Go back to map
+        $('saga-fight-btn').onclick = () => renderMap(); 
     }
 };
+
 
