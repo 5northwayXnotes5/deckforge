@@ -99,7 +99,7 @@ export const load = () => {
     updateUI();
 };
 
-const updateUI = () => {
+export const updateUI = () => {
     if ($('gold-display')) $('gold-display').innerText = Math.floor(state.gold).toLocaleString();
     if ($('shop-gold')) $('shop-gold').innerText = Math.floor(state.gold).toLocaleString();
     if ($('col-empty') && state.col) $('col-empty').style.display = state.col.length ? 'none' : 'block';
