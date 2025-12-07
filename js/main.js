@@ -103,6 +103,8 @@ const app = {
     studioLoadDemo: () => Studio.loadDemo(),
     studioAddStat: () => Studio.addStat(),
     studioRemStat: (k) => Studio.remStat(k),
+    studioSaveSaga: () => Studio.saveSaga(),
+    studioResetSaga: () => Studio.resetSagaDefault(),
     studioExport: () => Studio.exportConfig(),
     studioImport: () => Studio.importConfig(),
     studioLock: () => Studio.lockStudio(),
@@ -114,7 +116,7 @@ const app = {
     bankDeposit: () => Bank.deposit(),
     bankWithdraw: () => Bank.withdraw(),
     bankLoan: () => Bank.takeLoan(),
-    bankRepay: () => Bank.repayLoan(), // <--- Wiring Complete
+    bankRepay: () => Bank.repayLoan(),
 
     // ORACLE
     oracleConsult: () => Oracle.consult(),
