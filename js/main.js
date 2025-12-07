@@ -19,7 +19,7 @@ import * as Market from './apps/market.js';
 import * as Museum from './apps/museum.js';
 import * as Terminal from './apps/terminal.js';
 import * as Identity from './apps/identity.js';
-import * as Studio from './apps/studio.js'; // The new GM Dashboard
+import * as Studio from './apps/studio.js'; 
 
 // --- GLOBAL CONTROLLER ---
 const app = {
@@ -94,10 +94,10 @@ const app = {
     // ROYALE
     runRoyale: () => Royale.run(),
     
-    // SETTINGS (Stripped down to just wallpaper)
+    // SETTINGS
     setWall: () => Settings.setWall(),
     
-    // STUDIO (New GM Tools)
+    // STUDIO
     switchStudioTab: (t) => Studio.switchTab(t),
     studioParsePool: () => Studio.parsePool(),
     studioLoadDemo: () => Studio.loadDemo(),
@@ -110,9 +110,10 @@ const app = {
     // MEMORY
     initMem: () => Memory.init(),
 
-    // BANK
+    // BANK (FIXED HERE)
     bankDeposit: () => Bank.deposit(),
     bankWithdraw: () => Bank.withdraw(),
+    bankLoan: () => Bank.takeLoan(), // <--- NEW CONNECTION
 
     // ORACLE
     oracleConsult: () => Oracle.consult(),
