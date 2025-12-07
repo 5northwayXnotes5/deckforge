@@ -99,6 +99,7 @@ export const load = () => {
     updateUI();
 };
 
+// Added 'export' keyword ---
 export const updateUI = () => {
     if ($('gold-display')) $('gold-display').innerText = Math.floor(state.gold).toLocaleString();
     if ($('shop-gold')) $('shop-gold').innerText = Math.floor(state.gold).toLocaleString();
