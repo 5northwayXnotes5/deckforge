@@ -427,24 +427,45 @@
             </div>
         </div>
 
-        <!-- BANK -->
+        <!-- BANK (Final UI) -->
         <div id="app-bank" class="app-window">
             <div class="nav-bar"><div class="nav-title">Bank</div></div>
             <div class="content">
-                <div class="bank-vault">
-                    <div class="list-sub">SAVINGS BALANCE</div>
-                    <div class="bank-display" id="bank-bal">0</div>
-                    <div class="rate-pill">APY: 5% (1 min)</div>
+                
+                <!-- SAVINGS SECTION -->
+                <div class="bank-vault" style="margin-bottom:10px;">
+                    <div class="list-sub" style="color:#8e8e93; font-weight:600;">SAVINGS ACCOUNT</div>
+                    <div class="bank-display" id="bank-bal" style="color:var(--accent-cyan)">0</div>
+                    <div class="rate-pill" style="background:rgba(100, 210, 255, 0.15); color:var(--accent-cyan);">APY: 1% (10 min)</div>
                 </div>
-                <div class="list-group">
+                
+                <div class="list-group" style="margin-top:0;">
                     <div class="list-row"><label>Amount</label><input type="number" id="bank-in" placeholder="0"></div>
                     <div class="btn-row" style="margin:0; padding:10px;">
                         <div class="btn filled" onclick="app.bankDeposit()">Deposit</div>
                         <div class="btn" onclick="app.bankWithdraw()">Withdraw</div>
-                        <div class="btn danger" onclick="app.bankLoan()">Loan</div>
                     </div>
                 </div>
-                <div style="padding:20px; text-align:center; color:#666; font-size:13px;">Interest is paid every minute while app is open.</div>
+
+                <!-- LOAN SECTION -->
+                <div class="bank-vault" style="margin-top:20px; border-color:#FF453A; background:radial-gradient(circle, #2a0a0a, #000);">
+                    <div class="list-sub" style="color:#FF453A; font-weight:600;">CREDIT LINE</div>
+                    <div class="bank-display" id="bank-debt" style="color:#FF453A">0</div>
+                    <div class="rate-pill" style="background:rgba(255, 69, 58, 0.15); color:#FF453A;">Interest: 5% (10 min)</div>
+                    <div class="list-sub" style="margin-top:8px; font-size:11px;" id="bank-limit">Max Loan: 0</div>
+                </div>
+
+                <div class="list-group" style="margin-top:0;">
+                    <div class="btn-row" style="margin:0; padding:10px;">
+                        <div class="btn danger" onclick="app.bankLoan()">Borrow</div>
+                        <div class="btn" onclick="app.bankRepay()">Repay</div>
+                    </div>
+                </div>
+
+                <div style="padding:20px; text-align:center; color:#666; font-size:13px;">
+                    Interest compounds every 10 minutes (Offline included).<br>
+                    Max Loan = 50% of Collection Value.
+                </div>
             </div>
         </div>
 
