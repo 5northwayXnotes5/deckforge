@@ -2,7 +2,7 @@ import { state, $, save, notify, uid, exportCartridge, importCartridge, openAppW
 
 // --- INTERNAL STATE ---
 let studio = {
-    activeTab: 'pool' // pool, stats, cartridge
+    activeTab: 'pool' // pool, stats, saga, cartridge
 };
 
 // --- INITIALIZATION ---
@@ -10,6 +10,7 @@ export const init = () => {
     // 1. Load Data into Editors
     refreshPoolEditor();
     refreshStatList();
+    refreshSagaEditor();
     
     // 2. Set Active Tab
     switchTab('pool');
@@ -19,8 +20,8 @@ export const init = () => {
 export const switchTab = (tabId) => {
     studio.activeTab = tabId;
     
-    // Update UI (Simple visibility toggle based on IDs we will create in HTML)
-    const tabs = ['pool', 'stats', 'cartridge'];
+    // Update UI
+    const tabs = ['pool', 'stats', 'saga', 'cartridge'];
     tabs.forEach(t => {
         const el = $(`studio-tab-${t}`);
         const btn = $(`btn-tab-${t}`);
@@ -36,7 +37,7 @@ export const switchTab = (tabId) => {
     });
 };
 
-// --- POOL EDITOR (Legacy Support) ---
+// --- POOL EDITOR ---
 const refreshPoolEditor = () => {
     const poolIn = $('studio-pool-in');
     if (poolIn && state.pool) {
@@ -103,7 +104,7 @@ const refreshStatList = () => {
     list.innerHTML = state.stats.map(k => `
         <div class="list-row">
             <label>${k}</label>
-            <div class="btn danger sm" onclick="app.remStat('${k}')">X</div>
+            <div class="btn danger sm" onclick="app.studioRemStat('${k}')">X</div>
         </div>
     `).join('');
 };
@@ -131,13 +132,51 @@ export const remStat = (key) => {
     notify("Stat Removed");
 };
 
+// --- SAGA EDITOR (NEW) ---
+const refreshSagaEditor = () => {
+    const box = $('studio-saga-in');
+    if(box && state.campaign) {
+        // Pretty print JSON
+        box.value = JSON.stringify(state.campaign, null, 4);
+    }
+};
+
+export const saveSaga = () => {
+    const box = $('studio-saga-in');
+    const raw = box.value;
+    
+    try {
+        const data = JSON.parse(raw);
+        if(!Array.isArray(data)) throw new Error("Root must be array");
+        
+        state.campaign = data;
+        save();
+        notify("Campaign Saved");
+        refreshSagaEditor(); // Reformat
+    } catch(e) {
+        notify("Invalid JSON syntax");
+    }
+};
+
+export const resetSagaDefault = () => {
+    const def = [
+        { type: 'story', title: 'The Beginning', text: 'Custom Narrative Start...' },
+        { type: 'battle', title: 'First Guard', difficulty: 1 }, 
+        { type: 'loot',   title: 'Hidden Stash', reward: 100 },
+        { type: 'boss',   title: 'The End', difficulty: 3 }
+    ];
+    state.campaign = def;
+    save();
+    notify("Default Template Loaded");
+    refreshSagaEditor();
+};
+
 // --- CARTRIDGE SYSTEM ---
 export const exportConfig = () => {
     const json = exportCartridge();
     const out = $('studio-cart-out');
     if (out) {
         out.value = json;
-        // Select all text for easy copy
         out.select();
         document.execCommand('copy');
         notify("Config Copied to Clipboard");
@@ -145,7 +184,7 @@ export const exportConfig = () => {
 };
 
 export const importConfig = () => {
-    const input = $('studio-cart-out'); // We use the same box for I/O
+    const input = $('studio-cart-out'); 
     const json = input.value.trim();
     
     if (!json) return notify("Paste Config JSON first");
@@ -154,6 +193,7 @@ export const importConfig = () => {
     if (success) {
         refreshPoolEditor();
         refreshStatList();
+        refreshSagaEditor();
         input.value = '';
     }
 };
@@ -164,11 +204,7 @@ export const lockStudio = () => {
     state.gmMode = false;
     save();
     
-    // Remove Visuals
     document.body.classList.remove('gm-mode');
-    
-    // Close Window
     openAppWindow('settings'); // Redirect to safe place
-    notify("System Locked. (Type 'sudo open_studio' in Terminal to return)");
+    notify("System Locked.");
 };
-
