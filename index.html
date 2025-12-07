@@ -6,7 +6,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#000000">
     <title>DeckOS 5.1 GM</title>
+    
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Core Styles -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -242,7 +246,7 @@
                     <div class="shop-item" onclick="app.buyPack(6)">
                         <div class="pack-icon p-god"><i class="ph-fill ph-infinity"></i></div>
                         <div style="flex:1"><div>God Tier</div><div class="list-sub">The ultimate.</div></div>
-                        <div class="btn gold sm">20K G</div>
+                        <div class="btn gold sm">2K G</div>
                     </div>
                 </div>
             </div>
@@ -437,6 +441,7 @@
                     <div class="btn-row" style="margin:0; padding:10px;">
                         <div class="btn filled" onclick="app.bankDeposit()">Deposit</div>
                         <div class="btn" onclick="app.bankWithdraw()">Withdraw</div>
+                        <div class="btn danger" onclick="app.bankLoan()">Loan</div>
                     </div>
                 </div>
                 <div style="padding:20px; text-align:center; color:#666; font-size:13px;">Interest is paid every minute while app is open.</div>
@@ -572,5 +577,3 @@
 
 </body>
 </html>
-
-
