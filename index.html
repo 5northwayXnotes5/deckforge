@@ -86,7 +86,7 @@
         </div>
         <div class="app-item" onclick="app.open('terminal')">
             <div class="icon-box grad-term"><i class="ph-bold ph-terminal-window"></i></div>
-            <div class="app-name">Terminal</div>
+            <div class="app-name">Term</div>
         </div>
 
         <!-- Row 4: HIDDEN GM TOOL (Studio) -->
@@ -133,17 +133,37 @@
                 <!-- POOL EDITOR -->
                 <div id="studio-tab-pool">
                     <div class="list-group">
-                        <div class="list-row"><label>Count</label><span id="studio-pool-count">0</span></div>
-                        <div class="list-row" style="height:auto; padding:0;">
-                            <textarea id="studio-pool-in" style="width:100%; height:200px; padding:12px; background:transparent; border:none; color:#0A84FF; font-family:monospace; font-size:12px; line-height:1.4;" placeholder="[Name]URL"></textarea>
+                        <div class="list-row">
+                            <label>Count</label>
+                            <span id="studio-pool-count">0</span>
+                            <div class="btn sm" onclick="app.studioTogglePoolMode()">Switch to Raw/Legacy</div>
                         </div>
-                        <div class="btn-row">
-                            <div class="btn filled" onclick="app.studioParsePool()">Update Pool</div>
-                            <div class="btn" onclick="app.studioLoadDemo()">Load Demo</div>
+                        
+                        <!-- Visual Editor -->
+                        <div id="studio-pool-visual">
+                            <div class="list-row" style="background:rgba(255,255,255,0.05);">
+                                <input id="pool-add-name" placeholder="Name" style="width:40%; text-align:left;">
+                                <input id="pool-add-img" placeholder="Image URL" style="width:40%;">
+                                <div class="btn sm filled" onclick="app.studioAddCard()">+</div>
+                            </div>
+                            <div id="studio-pool-list" style="max-height:300px; overflow-y:auto;">
+                                <!-- Dynamic List -->
+                            </div>
                         </div>
-                    </div>
-                    <div style="padding:0 20px; font-size:12px; color:#666;">
-                        Format: [CardName]ImageURL<br>One card per line.
+
+                        <!-- Raw Editor (Hidden by default) -->
+                        <div id="studio-pool-raw" style="display:none;">
+                            <div class="list-row" style="height:auto; padding:0;">
+                                <textarea id="studio-pool-in" style="width:100%; height:200px; padding:12px; background:transparent; border:none; color:#0A84FF; font-family:monospace; font-size:12px; line-height:1.4;" placeholder="[Name]URL"></textarea>
+                            </div>
+                            <div class="btn-row">
+                                <div class="btn filled" onclick="app.studioParsePool()">Update Pool</div>
+                                <div class="btn" onclick="app.studioLoadDemo()">Load Demo</div>
+                            </div>
+                            <div style="padding:10px 16px; font-size:12px; color:#666;">
+                                Format: [CardName]ImageURL<br>One card per line.
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -158,19 +178,37 @@
                     </div>
                 </div>
 
-                <!-- SAGA EDITOR (NEW) -->
+                <!-- SAGA EDITOR -->
                 <div id="studio-tab-saga" style="display:none;">
                     <div class="list-group">
-                        <div class="list-row" style="height:auto; padding:0;">
-                            <textarea id="studio-saga-in" style="width:100%; height:250px; padding:12px; background:transparent; border:none; color:#FF9F0A; font-family:monospace; font-size:11px;" placeholder="Campaign JSON"></textarea>
+                        <div class="list-row">
+                            <label>Campaign</label>
+                            <div class="btn sm" onclick="app.studioToggleSagaMode()">Switch to JSON</div>
                         </div>
-                        <div class="btn-row">
-                            <div class="btn filled" onclick="app.studioSaveSaga()">Save Campaign</div>
-                            <div class="btn" onclick="app.studioResetSaga()">Load Default</div>
+
+                        <!-- Visual Editor -->
+                        <div id="studio-saga-visual">
+                            <div class="btn-row" style="margin:10px 0; gap:4px;">
+                                <div class="btn sm" onclick="app.studioAddNode('story')">+ Story</div>
+                                <div class="btn sm" onclick="app.studioAddNode('battle')">+ Battle</div>
+                                <div class="btn sm" onclick="app.studioAddNode('loot')">+ Loot</div>
+                                <div class="btn sm" onclick="app.studioAddNode('boss')">+ Boss</div>
+                            </div>
+                            <div id="studio-saga-list" style="max-height:350px; overflow-y:auto; padding:0 10px;">
+                                <!-- Dynamic Nodes -->
+                            </div>
                         </div>
-                    </div>
-                    <div style="padding:0 20px; font-size:12px; color:#666;">
-                        Edit the story nodes. Valid types: "story", "battle", "loot", "boss".
+
+                        <!-- Raw Editor -->
+                        <div id="studio-saga-raw" style="display:none;">
+                            <div class="list-row" style="height:auto; padding:0;">
+                                <textarea id="studio-saga-in" style="width:100%; height:250px; padding:12px; background:transparent; border:none; color:#FF9F0A; font-family:monospace; font-size:11px;" placeholder="Campaign JSON"></textarea>
+                            </div>
+                            <div class="btn-row">
+                                <div class="btn filled" onclick="app.studioSaveSaga()">Save JSON</div>
+                                <div class="btn" onclick="app.studioResetSaga()">Load Default</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
