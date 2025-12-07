@@ -133,5 +133,3 @@ window.app = app;
 
 // Boot OS
 window.onload = Core.load;
-
-
