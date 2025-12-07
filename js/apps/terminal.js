@@ -85,7 +85,7 @@ const execute = (rawCmd) => {
             break;
 
         case 'inject':
-            // Cheat code (Still here for quick testing)
+            // Cheat code
             const amt = parseInt(args[0]);
             if (!isNaN(amt)) {
                 state.gold += amt;
@@ -141,56 +141,3 @@ const execute = (rawCmd) => {
             print(`Command '${cmd}' not found.`, "err");
     }
 };
-
-
-            break;
-
-        case 'clear':
-            $('term-out').innerHTML = '';
-            break;
-
-        case 'status':
-            print(`[SYSTEM STATUS]`);
-            print(`Gold: ${state.gold}`);
-            print(`Bank: ${state.bank || 0}`);
-            print(`Cards: ${state.col.length}`);
-            print(`Pool Size: ${state.pool.length}`);
-            print(`Version: ${state.ver}`);
-            break;
-
-        case 'whoami':
-            const id = state.identity || { name: 'Unknown', avatarSeed: '?' };
-            print(`User: ${id.name}`);
-            print(`Seed: ${id.avatarSeed}`);
-            break;
-
-        case 'inject':
-            const amt = parseInt(args[0]);
-            if (!isNaN(amt)) {
-                state.gold += amt;
-                save();
-                print(`[CHEAT] Injected ${amt}G. Don't tell anyone.`, "sys");
-            } else {
-                print("Usage: inject <amount>", "err");
-            }
-            break;
-
-        case 'reboot':
-            print("Rebooting...", "sys");
-            setTimeout(() => location.reload(), 1000);
-            break;
-
-        case 'wipe':
-            print("WARNING: This will delete all data.", "err");
-            print("Type 'confirm_wipe' to proceed.", "err");
-            break;
-
-        case 'confirm_wipe':
-            factoryReset();
-            break;
-
-        default:
-            print(`Command '${cmd}' not found.`, "err");
-    }
-};
-
