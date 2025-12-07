@@ -1,11 +1,6 @@
 import { state, $, save, notify, rand } from '../core.js';
 import { createCard } from './shop.js';
 
-// --- INTERNAL STATE ---
-let saga = {
-    // No specific internal state needed for now, handled by state.saga
-};
-
 // --- DEFAULT CAMPAIGN (Fallback) ---
 const DEFAULT_CAMPAIGN = [
     { type: 'story', title: 'The Beginning', text: 'You boot up the system. The path ahead is fragmented. Digital entities block your root access.' },
@@ -26,12 +21,9 @@ export const init = () => {
         };
     }
 
-    // 2. Lazy Load Campaign Data (The Cartridge)
-    // If no campaign exists, load the default one so the player has something to play.
+    // 2. Lazy Load Campaign Data
     if (!state.campaign || state.campaign.length === 0) {
         state.campaign = JSON.parse(JSON.stringify(DEFAULT_CAMPAIGN));
-        // We don't necessarily save() here to avoid writing defaults to localstorage unnecessarily, 
-        // but for a robust app, it's safer to ensure state matches memory.
         save();
     }
 
@@ -45,7 +37,6 @@ const renderMap = () => {
 
     mapEl.innerHTML = '';
 
-    // Use state.campaign instead of hardcoded constant
     state.campaign.forEach((node, index) => {
         const el = document.createElement('div');
         el.className = 'saga-node';
@@ -141,7 +132,6 @@ export const resetSaga = () => {
 const startBattle = (node) => {
     if (state.pool.length === 0) return notify("Pool Empty! Cannot generate enemy.");
 
-    // Difficulty Mapping
     let targetRarity = 'c';
     if (node.difficulty === 2) targetRarity = 'r';
     if (node.difficulty === 3) targetRarity = 'l';
@@ -150,7 +140,6 @@ const startBattle = (node) => {
     
     if (state.col.length === 0) return notify("You need cards to fight!");
     
-    // Auto-Select Player's Best Card
     const playerCard = state.col.reduce((prev, current) => {
         const prevTotal = Object.values(prev.stat).reduce((a,b)=>a+b,0);
         const currTotal = Object.values(current.stat).reduce((a,b)=>a+b,0);
@@ -185,17 +174,14 @@ const startBattle = (node) => {
 const resolveBattle = (pCard, eTemplate, eRarityId, node) => {
     const log = $('saga-battle-log');
     
-    // Generate Enemy Stats on the fly
     const eStat = {};
     const rObj = state.rarity.find(x => x.id === eRarityId) || state.rarity[0];
     const mult = state.rarity.indexOf(rObj) + 1;
     state.stats.forEach(k => eStat[k] = Math.floor(Math.random() * 20 * mult) + (10 * mult));
 
-    // Calc Averages
     const pAvg = Object.values(pCard.stat).reduce((a,b)=>a+b,0) / Object.keys(pCard.stat).length;
     const eAvg = Object.values(eStat).reduce((a,b)=>a+b,0) / Object.keys(eStat).length;
 
-    // RNG Roll
     const pRoll = pAvg * (0.9 + Math.random() * 0.2);
     const eRoll = eAvg * (0.9 + Math.random() * 0.2);
 
@@ -206,9 +192,6 @@ const resolveBattle = (pCard, eTemplate, eRarityId, node) => {
         
         setTimeout(() => {
             if (node.type === 'boss') {
-                // Reward logic using shared Shop function would be ideal, 
-                // but direct creation is safer here to avoid circular imports if Shop imports Saga later.
-                // We'll trust the shop import at the top.
                 const reward = createCard(eTemplate.id, eRarityId);
                 if (reward && reward !== 'CAP') {
                     state.col.push(reward);
@@ -227,5 +210,3 @@ const resolveBattle = (pCard, eTemplate, eRarityId, node) => {
         $('saga-fight-btn').onclick = () => renderMap(); 
     }
 };
-
-
