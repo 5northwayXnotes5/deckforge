@@ -1,4 +1,4 @@
-import { state, $, save, notify } from '../core.js';
+import { state, $, save, notify, updateUI } from '../core.js';
 
 // --- CONFIGURATION ---
 const BASE_RATE = 0.01; // Savings: 1% per 10m
@@ -90,7 +90,7 @@ export const withdraw = () => {
 };
 
 export const takeLoan = () => {
-    const input = $('bank-in'); // Reuse same input for simplicity
+    const input = $('bank-loan-in'); // New input
     const val = parseInt(input.value);
     if (isNaN(val) || val <= 0) return notify("Enter Amount");
 
@@ -111,7 +111,7 @@ export const takeLoan = () => {
 };
 
 export const repayLoan = () => {
-    const input = $('bank-in');
+    const input = $('bank-loan-in'); // New input
     let val = parseInt(input.value);
     if (isNaN(val) || val <= 0) return notify("Enter Amount");
 
@@ -133,4 +133,6 @@ const finishTransaction = (input, msg) => {
     save();
     updateBankUI();
     notify(msg);
+    // Explicitly update the main UI (Gold display)
+    updateUI();
 };
