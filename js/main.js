@@ -110,10 +110,11 @@ const app = {
     // MEMORY
     initMem: () => Memory.init(),
 
-    // BANK (FIXED HERE)
+    // BANK
     bankDeposit: () => Bank.deposit(),
     bankWithdraw: () => Bank.withdraw(),
-    bankLoan: () => Bank.takeLoan(), // <--- NEW CONNECTION
+    bankLoan: () => Bank.takeLoan(),
+    bankRepay: () => Bank.repayLoan(), // <--- Wiring Complete
 
     // ORACLE
     oracleConsult: () => Oracle.consult(),
