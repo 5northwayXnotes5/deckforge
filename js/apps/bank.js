@@ -56,14 +56,11 @@ const updateBankUI = () => {
     const balEl = $('bank-bal');
     if (balEl) balEl.innerText = Math.floor(state.bank).toLocaleString();
     
-    // Loan UI (We need to inject this HTML since the original didn't have it)
-    // I'll assume we can hijack the pill or add a new section via JS if needed,
-    // but ideally we should update HTML. For now, let's toggle the rate pill.
+    // Rate UI
     const ratePill = document.querySelector('.rate-pill');
     if (ratePill) ratePill.innerText = `Savings: 1% / 10m`;
 
-    // Show Debt if exists
-    // We will append a Debt display dynamically if it doesn't exist
+    // Debt UI
     let debtDisplay = $('bank-debt-display');
     if (!debtDisplay) {
         const container = document.querySelector('.bank-vault');
@@ -93,14 +90,15 @@ export const deposit = () => {
     const val = parseInt(input.value);
 
     if (isNaN(val) || val <= 0) return notify("Invalid Amount");
-    if (state.gold < val) return notify("Insufficient Cash");
+    if (state.gold < val) return notify("Insufficient Gold");
 
-    // Pay off debt first logic? No, let them hoard if they want (bad idea for them)
+    // Auto-pay debt logic (Optional, but usually banks take their money first)
+    // For now, let's keep it manual to let players hang themselves with debt.
     
     state.gold -= val;
     state.bank += val;
 
-    input.value = '';
+    input.value = ''; 
     save();
     updateBankUI();
     notify(`Deposited ${val}G`);
@@ -112,7 +110,6 @@ export const withdraw = () => {
 
     if (isNaN(val) || val <= 0) return notify("Invalid Amount");
     
-    // Check if trying to withdraw from Savings
     if (state.bank >= val) {
         state.bank -= val;
         state.gold += val;
@@ -120,24 +117,33 @@ export const withdraw = () => {
         save();
         updateBankUI();
         notify(`Withdrew ${val}G`);
-        return;
-    } 
-    
-    // If not enough in savings, maybe they want a LOAN?
-    // Loan Logic: Max Loan = 50% of Collection Value (Estimated 100G per card average)
-    const collateral = state.col.length * 100; 
-    const maxLoan = collateral - state.debt;
-
-    if (val <= maxLoan) {
-        // Take a Loan
-        // Prompt? We can't really prompt easily without a custom modal.
-        // Let's just notify them "Taking Loan" implies they hit withdraw with 0 bank.
-        // Actually, that's dangerous UX.
-        // Let's stick to strict: Withdraw only takes money you have.
-        // To take a loan, you enter a NEGATIVE number? Or we add a button.
-        // Limitation: We only have 2 buttons in HTML.
-        return notify("Insufficient Funds in Bank");
+    } else {
+        notify("Insufficient Funds in Savings");
     }
+};
+
+export const takeLoan = () => {
+    const input = $('bank-in');
+    const val = parseInt(input.value);
+
+    if (isNaN(val) || val <= 0) return notify("Enter Loan Amount");
     
-    return notify("Insufficient Funds");
+    // Calculate Max Loan (Equity based)
+    // Equity = Cash + Bank + Collection Value (Approx 100G per card)
+    const equity = state.gold + state.bank + (state.col.length * 100);
+    const maxLoan = Math.floor(equity * 0.5); // Can borrow up to 50% of net worth
+    
+    const currentDebt = state.debt || 0;
+    
+    if ((currentDebt + val) > maxLoan) {
+        return notify(`Loan Denied. Max Debt: ${maxLoan}G`);
+    }
+
+    state.debt = currentDebt + val;
+    state.gold += val;
+    
+    input.value = '';
+    save();
+    updateBankUI();
+    notify(`Loan Approved: +${val}G`);
 };
