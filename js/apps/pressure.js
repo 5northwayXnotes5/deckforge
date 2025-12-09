@@ -52,7 +52,7 @@ export const start = () => {
     pState.bet = bet;
     pState.level = 1;
     pState.position = 50;
-    pState.force = 0.3;
+    pState.force = 0.5; // Increased base gravity (was 0.3)
     pState.timeLeft = 15.0;
     pState.safeMode = true;
 
@@ -68,6 +68,8 @@ export const start = () => {
     
     // Remove safety after 0.5s
     setTimeout(() => { pState.safeMode = false; }, 500);
+
+    updateUI();
 };
 
 const gameLoop = () => {
@@ -83,16 +85,25 @@ const gameLoop = () => {
     }
 
     // 2. Physics (Gravity increases with level)
-    // Level 1: 0.3 force
-    // Level 10: ~2.3 force (Very heavy)
-    const gravity = pState.force + (pState.level * pState.level * 0.02);
+    // New Curve: Linear but steeper. 
+    // Level 1: 0.75 gravity
+    // Level 10: 3.0 gravity (Very Heavy)
+    const gravity = 0.5 + (pState.level * 0.25);
     pState.position -= gravity;
 
-    // 3. Render Bar
+    // 3. Turbulence (Jitter)
+    // Starting at level 5, the bar will shake randomly
+    if (pState.level >= 5) {
+        if (Math.random() < 0.2) {
+            pState.position += (Math.random() * 6 - 3); 
+        }
+    }
+
+    // 4. Render Bar
     const bar = $('p-bar');
     if (bar) bar.style.left = pState.position + '%';
 
-    // 4. Collision Detection
+    // 5. Collision Detection
     // Bounds: 0% to 90% (since bar is 10% wide)
     if (!pState.safeMode) {
         if (pState.position <= 0 || pState.position >= 90) {
@@ -109,7 +120,8 @@ const gameLoop = () => {
 export const tap = () => {
     if (pState.active) {
         // Push the bar up
-        pState.position += 6; 
+        // Increased from 6 to 8 to compensate for heavier gravity
+        pState.position += 8; 
     }
 };
 
@@ -132,8 +144,10 @@ const nextLevel = () => {
         return;
     }
 
-    // Intermediate Payout
-    const payout = pState.bet * pState.level; // e.g. 50 * 1 = 50, 50 * 2 = 100
+    // Intermediate Payout - NERFED
+    // Old: Bet * Level (Exponential)
+    // New: Fixed small drip feed (20% of bet) to keep player engaged without snowballing
+    const payout = Math.floor(pState.bet * 0.2); 
     state.gold += payout;
     notify(`Level ${pState.level} Clear! +${payout}G`);
 
@@ -148,6 +162,7 @@ const nextLevel = () => {
     
     setTimeout(() => { pState.safeMode = false; }, 500);
     save();
+    updateUI();
 };
 
 const fail = () => {
@@ -159,6 +174,7 @@ const fail = () => {
     // DELETE THE CARD
     state.col = state.col.filter(c => c.id !== pState.card.id);
     save();
+    updateUI();
 
     setTimeout(() => {
         // Return to Lobby
@@ -172,9 +188,11 @@ const victory = () => {
     pState.active = false;
 
     // Big Bonus for finishing level 10
-    const jackpot = pState.bet * 20; 
+    // Nerfed from 20x to 5x
+    const jackpot = pState.bet * 5; 
     state.gold += jackpot;
     save();
+    updateUI();
 
     notify(`MAX PRESSURE SURVIVED! +${jackpot}G`);
 
@@ -183,5 +201,3 @@ const victory = () => {
         $('pressure-game').classList.add('hidden');
     }, 2000);
 };
-
-
