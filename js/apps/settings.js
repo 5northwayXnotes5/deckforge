@@ -24,16 +24,6 @@ export const setWall = () => {
 
 // --- FACTORY RESET (PLAYER DATA ONLY) ---
 
-export const askWipe = () => {
-    const modal = $('confirm-modal');
-    if (modal) modal.style.display = 'flex';
-};
-
-export const closeConfirm = () => {
-    const modal = $('confirm-modal');
-    if (modal) modal.style.display = 'none';
-};
-
 export const wipe = () => {
     // 1. Reset Player Economy & Progress
     state.gold = 100;           // Reset to starter money
