@@ -5,6 +5,16 @@ const BASE_RATE = 0.01; // Savings: 1% per 10m
 const LOAN_RATE = 0.05; // Debt: 5% per 10m
 const TICK_MS = 10 * 60 * 1000; 
 
+// New Collateral Logic: Stingy Valuation
+const LOAN_VALUES = {
+    'c': 5,    // Common: Was 100, Now 5
+    'u': 12,   // Uncommon: Was 100, Now 12
+    'r': 25,   // Rare
+    'e': 50,   // Epic
+    'l': 125,  // Legendary
+    'm': 500   // Mythic
+};
+
 // --- INITIALIZATION ---
 export const init = () => {
     // Lazy Load
@@ -44,6 +54,20 @@ const processOfflineTime = () => {
     }
 };
 
+const getCollateral = () => {
+    let total = 0;
+    if (!state.col) return 0;
+    
+    state.col.forEach(c => {
+        // Default to Common value if rarity is somehow missing
+        const val = LOAN_VALUES[c.rid] || 5; 
+        total += val;
+    });
+    
+    // Max Loan is 50% of scrap value
+    return Math.floor(total * 0.5);
+};
+
 const updateBankUI = () => {
     // 1. Savings
     const balEl = $('bank-bal');
@@ -53,14 +77,12 @@ const updateBankUI = () => {
     const debtEl = $('bank-debt');
     if (debtEl) debtEl.innerText = Math.floor(state.debt).toLocaleString();
 
-    // 3. Credit Limit (Collateral based)
-    // Value = 100G per card (simplified valuation)
-    const collateral = (state.col.length * 100); 
-    const maxLoan = Math.floor(collateral * 0.5); // 50% LTV
+    // 3. Credit Limit
+    const maxLoan = getCollateral();
     
     const limitEl = $('bank-limit');
     if (limitEl) {
-        limitEl.innerText = `Collateral: ${state.col.length} Cards | Limit: ${maxLoan.toLocaleString()}G`;
+        limitEl.innerText = `Collateral Limit: ${maxLoan.toLocaleString()}G`;
     }
 };
 
@@ -90,13 +112,11 @@ export const withdraw = () => {
 };
 
 export const takeLoan = () => {
-    const input = $('bank-loan-in'); // New input
+    const input = $('bank-loan-in');
     const val = parseInt(input.value);
     if (isNaN(val) || val <= 0) return notify("Enter Amount");
 
-    // Collateral Check
-    const collateral = (state.col.length * 100); 
-    const maxLoan = Math.floor(collateral * 0.5); 
+    const maxLoan = getCollateral();
     
     if (maxLoan <= 0) return notify("No Collateral (Need Cards)");
     
@@ -111,7 +131,7 @@ export const takeLoan = () => {
 };
 
 export const repayLoan = () => {
-    const input = $('bank-loan-in'); // New input
+    const input = $('bank-loan-in');
     let val = parseInt(input.value);
     if (isNaN(val) || val <= 0) return notify("Enter Amount");
 
@@ -133,6 +153,5 @@ const finishTransaction = (input, msg) => {
     save();
     updateBankUI();
     notify(msg);
-    // Explicitly update the main UI (Gold display)
     updateUI();
 };
