@@ -96,11 +96,7 @@ const app = {
     
     // SETTINGS
     setWall: () => Settings.setWall(),
-    
-    // NEW: Factory Reset Bindings
-    askWipe: () => Settings.askWipe(),
-    closeConfirm: () => Settings.closeConfirm(),
-    wipe: () => Settings.wipe(),
+    playerWipe: () => Settings.wipe(),
     
     // STUDIO
     switchStudioTab: (t) => Studio.switchTab(t),
