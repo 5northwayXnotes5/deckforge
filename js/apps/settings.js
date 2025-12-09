@@ -48,7 +48,6 @@ export const wipe = () => {
 
     // 4. Save & Reboot
     save();
-    closeConfirm();
     notify("System Reset. Rebooting...");
     
     // Force reload to clear all UI states
