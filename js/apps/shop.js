@@ -3,13 +3,13 @@ import { state, $, save, notify, rand, uid, updateUI } from '../core.js';
 // --- CONFIGURATION ---
 // Weights correspond to: [Common, Uncommon, Rare, Epic, Legendary, Mythic]
 const PACKS = [
-    { id: 0, name: 'Basic', cost: 100, weights: [90, 10, 0, 0, 0, 0] },
-    { id: 1, name: 'Advanced', cost: 200, weights: [70, 25, 5, 0, 0, 0] },
-    { id: 2, name: 'Elite', cost: 500, weights: [40, 40, 15, 5, 0, 0] },
-    { id: 3, name: 'Commander', cost: 1000, weights: [20, 40, 30, 10, 0, 0] },
-    { id: 4, name: 'Supreme', cost: 2000, weights: [0, 20, 50, 25, 5, 0] },
-    { id: 5, name: 'Mythic', cost: 5000, weights: [0, 0, 30, 50, 15, 5] },
-    { id: 6, name: 'God Tier', cost: 20000, weights: [0, 0, 0, 20, 50, 30] }
+    { id: 0, name: 'Basic', cost: 1000, weights: [90, 10, 0, 0, 0, 0] },
+    { id: 1, name: 'Advanced', cost: 2000, weights: [70, 25, 5, 0, 0, 0] },
+    { id: 2, name: 'Elite', cost: 5000, weights: [40, 40, 15, 5, 0, 0] },
+    { id: 3, name: 'Commander', cost: 10000, weights: [20, 40, 30, 10, 0, 0] },
+    { id: 4, name: 'Supreme', cost: 20000, weights: [0, 20, 50, 25, 5, 0] },
+    { id: 5, name: 'Mythic', cost: 50000, weights: [0, 0, 15, 50, 30, 5] },
+    { id: 6, name: 'God Tier', cost: 1000000, weights: [0, 0, 0, 10, 50, 40] }
 ];
 
 // --- HELPER: RNG ---
