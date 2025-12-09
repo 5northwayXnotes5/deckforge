@@ -2,6 +2,7 @@ import { state, $, save, notify, rand } from '../core.js';
 
 // --- INTERNAL STATE ---
 let marketInterval = null;
+let bulkMult = 1; // Default to x1
 
 // Initial Base Prices
 const BASE_PRICES = {
@@ -59,7 +60,6 @@ const tick = () => {
     });
     
     // Auto-save occasionally? No, only on transaction. 
-    // But we need to save prices eventually. Let's not spam save() every 5s.
     // We update UI only.
     renderMarket();
 };
@@ -70,6 +70,20 @@ const renderMarket = () => {
     if (!list) return;
 
     list.innerHTML = '';
+
+    // NEW: Bulk Toggle Header
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.justifyContent = 'flex-end';
+    header.style.padding = '0 10px 10px';
+    header.innerHTML = `
+        <div class="btn sm ${bulkMult === 10 ? 'filled' : ''}" id="btn-bulk-tog">
+            ${bulkMult === 10 ? 'Bulk: x10' : 'Mode: x1'}
+        </div>
+    `;
+    list.appendChild(header);
+
+    document.getElementById('btn-bulk-tog').onclick = toggleBulk;
 
     state.rarity.forEach(r => {
         const price = state.market.prices[r.id];
@@ -103,8 +117,8 @@ const renderMarket = () => {
                 </div>
             </div>
             <div style="display:flex; flex-direction:column; gap:4px;">
-                <div class="btn sm filled" id="btn-buy-${r.id}">Buy</div>
-                <div class="btn sm" id="btn-sell-${r.id}">Sell</div>
+                <div class="btn sm filled" id="btn-buy-${r.id}">Buy x${bulkMult}</div>
+                <div class="btn sm" id="btn-sell-${r.id}">Sell x${bulkMult}</div>
             </div>
         `;
 
@@ -117,27 +131,33 @@ const renderMarket = () => {
 };
 
 // --- TRANSACTIONS ---
-const buy = (rid) => {
-    const price = state.market.prices[rid];
-    if (state.gold < price) return notify("Insufficient Gold");
+const toggleBulk = () => {
+    bulkMult = bulkMult === 1 ? 10 : 1;
+    renderMarket();
+};
 
-    state.gold -= price;
-    state.market.holdings[rid]++;
+const buy = (rid) => {
+    const unitPrice = state.market.prices[rid];
+    const totalCost = unitPrice * bulkMult;
+
+    if (state.gold < totalCost) return notify(`Need ${totalCost}G`);
+
+    state.gold -= totalCost;
+    state.market.holdings[rid] += bulkMult;
     
     save();
     renderMarket();
-    // No notify to allow spam clicking
 };
 
 const sell = (rid) => {
-    if (state.market.holdings[rid] <= 0) return notify("None to sell");
+    if (state.market.holdings[rid] < bulkMult) return notify(`Need ${bulkMult} to sell`);
     
-    const price = state.market.prices[rid];
+    const unitPrice = state.market.prices[rid];
+    const totalVal = unitPrice * bulkMult;
     
-    state.market.holdings[rid]--;
-    state.gold += price;
+    state.market.holdings[rid] -= bulkMult;
+    state.gold += totalVal;
     
     save();
     renderMarket();
 };
-
